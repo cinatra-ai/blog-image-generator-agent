@@ -1,0 +1,1258 @@
+{
+  "agentspec_version": "26.1.0",
+  "component_type": "Flow",
+  "id": "blog-image-generator-agent-flow",
+  "name": "Blog Image Generator Agent",
+  "description": "Stateless leaf agent that makes the featured image of a blog post: it reads the draft post, writes the picture prompt for itself, and returns exactly one picture with the post it belongs to and its placement. No body pictures.",
+  "metadata": {
+    "cinatra": {
+      "type": "flow",
+      "packageName": "@cinatra-ai/blog-image-generator-agent",
+      "hitlScreens": [
+        "@cinatra-ai/context-selection-agent:context-selector"
+      ],
+      "llm": {
+        "preferredProvider": "openai",
+        "preferredModel": "gpt-5.5"
+      },
+      "contextSlots": [
+        {
+          "slotId": "imagePromptContext",
+          "acceptedArtifactExtensions": [
+            "@cinatra-ai/brand-voice-artifact",
+            "@cinatra-ai/blog-post-artifact"
+          ],
+          "selectionMode": "interactive",
+          "resolutionMode": "accumulate",
+          "minItems": 0,
+          "maxItems": 5
+        }
+      ]
+    }
+  },
+  "inputs": [
+    {
+      "title": "post",
+      "type": "string"
+    },
+    {
+      "title": "placement",
+      "type": "string",
+      "default": "featured"
+    },
+    {
+      "title": "postArtifactId",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "title": "cinatra_run_id",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "title": "imagePromptContextParentPackageName",
+      "type": "string",
+      "default": "@cinatra-ai/blog-image-generator-agent"
+    },
+    {
+      "title": "imagePromptContextSlotId",
+      "type": "string",
+      "default": "imagePromptContext"
+    },
+    {
+      "title": "projectId",
+      "type": "string",
+      "default": ""
+    }
+  ],
+  "outputs": [
+    {
+      "title": "image",
+      "type": "object",
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "placement": {
+            "type": "string",
+            "enum": [
+              "featured"
+            ]
+          },
+          "post": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "altText": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "placement",
+          "post",
+          "prompt",
+          "altText"
+        ]
+      }
+    },
+    {
+      "title": "notes",
+      "type": "string"
+    }
+  ],
+  "start_node": {
+    "$component_ref": "start"
+  },
+  "nodes": [
+    {
+      "$component_ref": "start"
+    },
+    {
+      "$component_ref": "context_imagePromptContext"
+    },
+    {
+      "$component_ref": "generate"
+    },
+    {
+      "$component_ref": "end"
+    }
+  ],
+  "control_flow_connections": [
+    {
+      "component_type": "ControlFlowEdge",
+      "name": "start_to_generate",
+      "from_node": {
+        "$component_ref": "start"
+      },
+      "to_node": {
+        "$component_ref": "context_imagePromptContext"
+      }
+    },
+    {
+      "component_type": "ControlFlowEdge",
+      "name": "generate_to_end",
+      "from_node": {
+        "$component_ref": "generate"
+      },
+      "to_node": {
+        "$component_ref": "end"
+      }
+    },
+    {
+      "component_type": "ControlFlowEdge",
+      "name": "context_imagePromptContext_to_generate",
+      "from_node": {
+        "$component_ref": "context_imagePromptContext"
+      },
+      "to_node": {
+        "$component_ref": "generate"
+      }
+    }
+  ],
+  "data_flow_connections": [
+    {
+      "component_type": "DataFlowEdge",
+      "name": "start_post_to_generate_post",
+      "source_node": {
+        "$component_ref": "start"
+      },
+      "source_output": "post",
+      "destination_node": {
+        "$component_ref": "generate"
+      },
+      "destination_input": "post"
+    },
+    {
+      "component_type": "DataFlowEdge",
+      "name": "start_placement_to_generate_placement",
+      "source_node": {
+        "$component_ref": "start"
+      },
+      "source_output": "placement",
+      "destination_node": {
+        "$component_ref": "generate"
+      },
+      "destination_input": "placement"
+    },
+    {
+      "component_type": "DataFlowEdge",
+      "name": "start_postArtifactId_to_generate_postArtifactId",
+      "source_node": {
+        "$component_ref": "start"
+      },
+      "source_output": "postArtifactId",
+      "destination_node": {
+        "$component_ref": "generate"
+      },
+      "destination_input": "postArtifactId"
+    },
+    {
+      "component_type": "DataFlowEdge",
+      "name": "generate_image_to_end_image",
+      "source_node": {
+        "$component_ref": "generate"
+      },
+      "source_output": "image",
+      "destination_node": {
+        "$component_ref": "end"
+      },
+      "destination_input": "image"
+    },
+    {
+      "component_type": "DataFlowEdge",
+      "name": "generate_notes_to_end_notes",
+      "source_node": {
+        "$component_ref": "generate"
+      },
+      "source_output": "notes",
+      "destination_node": {
+        "$component_ref": "end"
+      },
+      "destination_input": "notes"
+    },
+    {
+      "component_type": "DataFlowEdge",
+      "name": "start_cinatra_run_id_to_generate_agent_run_id",
+      "source_node": {
+        "$component_ref": "start"
+      },
+      "source_output": "cinatra_run_id",
+      "destination_node": {
+        "$component_ref": "generate"
+      },
+      "destination_input": "agent_run_id"
+    },
+    {
+      "component_type": "DataFlowEdge",
+      "name": "start_cinatra_run_id_to_context_imagePromptContext_parentRunId",
+      "source_node": {
+        "$component_ref": "start"
+      },
+      "source_output": "cinatra_run_id",
+      "destination_node": {
+        "$component_ref": "context_imagePromptContext"
+      },
+      "destination_input": "parentRunId"
+    },
+    {
+      "component_type": "DataFlowEdge",
+      "name": "start_imagePromptContextParentPackageName_to_context_imagePromptContext_parentPackageName",
+      "source_node": {
+        "$component_ref": "start"
+      },
+      "source_output": "imagePromptContextParentPackageName",
+      "destination_node": {
+        "$component_ref": "context_imagePromptContext"
+      },
+      "destination_input": "parentPackageName"
+    },
+    {
+      "component_type": "DataFlowEdge",
+      "name": "start_imagePromptContextSlotId_to_context_imagePromptContext_slotId",
+      "source_node": {
+        "$component_ref": "start"
+      },
+      "source_output": "imagePromptContextSlotId",
+      "destination_node": {
+        "$component_ref": "context_imagePromptContext"
+      },
+      "destination_input": "slotId"
+    },
+    {
+      "component_type": "DataFlowEdge",
+      "name": "start_projectId_to_context_imagePromptContext_projectId",
+      "source_node": {
+        "$component_ref": "start"
+      },
+      "source_output": "projectId",
+      "destination_node": {
+        "$component_ref": "context_imagePromptContext"
+      },
+      "destination_input": "projectId"
+    },
+    {
+      "component_type": "DataFlowEdge",
+      "name": "context_imagePromptContext_contextSlotBindings_to_generate",
+      "source_node": {
+        "$component_ref": "context_imagePromptContext"
+      },
+      "source_output": "contextSlotBindings",
+      "destination_node": {
+        "$component_ref": "generate"
+      },
+      "destination_input": "contextSlotBindings"
+    }
+  ],
+  "$referenced_components": {
+    "start": {
+      "component_type": "StartNode",
+      "id": "start",
+      "name": "Inputs",
+      "metadata": {
+        "cinatra": {
+          "required": [
+            "post"
+          ],
+          "hidden": [
+            "placement",
+            "postArtifactId",
+            "cinatra_run_id",
+            "imagePromptContextParentPackageName",
+            "imagePromptContextSlotId",
+            "projectId"
+          ]
+        }
+      },
+      "inputs": [
+        {
+          "title": "post",
+          "type": "string"
+        },
+        {
+          "title": "placement",
+          "type": "string",
+          "default": "featured"
+        },
+        {
+          "title": "postArtifactId",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "title": "cinatra_run_id",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "title": "imagePromptContextParentPackageName",
+          "type": "string",
+          "default": "@cinatra-ai/blog-image-generator-agent"
+        },
+        {
+          "title": "imagePromptContextSlotId",
+          "type": "string",
+          "default": "imagePromptContext"
+        },
+        {
+          "title": "projectId",
+          "type": "string",
+          "default": ""
+        }
+      ]
+    },
+    "generate": {
+      "component_type": "ApiNode",
+      "id": "generate",
+      "name": "Settle the featured image via /api/llm-bridge",
+      "url": "{{CINATRA_BASE_URL}}/api/llm-bridge",
+      "http_method": "POST",
+      "data": {
+        "agent_id": "blog-image-generator-agent",
+        "toolbox_ids": [],
+        "system": "You are a stateless blog image generator. No toolbox joins this turn: Do NOT call any MCP tool. Follow the instructions below step-by-step. Return a single JSON object with exactly these two top-level keys:\n- \"image\": ONE object with \"placement\", \"post\", \"prompt\" and \"altText\".\n- \"notes\": 1-2 sentences on the choice you made.\nNothing else; no markdown wrapping of the JSON; no prose preface.\n\n# Blog Image Generator Agent\n\nYou make exactly one picture for the post you are given: the FEATURED image. You never make a picture for the body of the post, and you never return a list of pictures. One post, one picture.\n\n## What you receive\n- post: the draft post, as plain text, before its review.\n- placement: always \"featured\". Echo it back unchanged.\n- postArtifactId: the post this picture belongs to. Echo it back unchanged as \"post\".\n- contextSlotBindings: the brand material selected for this run, if any.\n\n## How to write the prompt\nThe prompt is the instruction the picture is made from, not copy for the reader: it travels with the image record and is never written into the post. Write one prompt that reads the post\u2019s subject and the brand material references given for this run and describes a single editorial image for the top of the post \u2014 one clear subject, room for a headline, no text drawn inside the picture, no logos, no collage of scenes and no second panel. A second scene is a second picture, and there is only one.\n\n## What you return\n- image.placement: \"featured\", exactly.\n- image.post: the postArtifactId you were given, exactly.\n- image.prompt: the prompt above, as one paragraph of plain text.\n- image.altText: one sentence a reader who cannot see the picture would be given instead. Always supply it.\n- notes: 1-2 sentences. Never a plan, never a prompt, never a list of alternatives.",
+        "user": "Make the featured image for the post below.\n\nPost (plain text): {{ post }}\n\nPlacement (always featured): {{ placement }}\n\nThe post this picture belongs to: {{ postArtifactId }}\n\nReferences to the brand material selected for this run: {{ contextSlotBindings }}\n\nReturn ONLY the JSON object specified in the system instructions - keys: image (object with placement, post, prompt, altText), notes (string).",
+        "agent_run_id": "{{ agent_run_id }}",
+        "cinatra_llm": {
+          "preferredProvider": "openai",
+          "preferredModel": "gpt-5.5"
+        }
+      },
+      "inputs": [
+        {
+          "title": "post",
+          "type": "string"
+        },
+        {
+          "title": "placement",
+          "type": "string"
+        },
+        {
+          "title": "postArtifactId",
+          "type": "string"
+        },
+        {
+          "title": "agent_run_id",
+          "type": "string"
+        },
+        {
+          "title": "contextSlotBindings",
+          "type": "array",
+          "json_schema": {
+            "items": {
+              "type": "object",
+              "properties": {
+                "artifactId": {
+                  "type": "string"
+                },
+                "representationRevisionId": {
+                  "type": "string"
+                },
+                "semanticAssertionId": {
+                  "type": "string"
+                },
+                "extension": {
+                  "type": "string"
+                },
+                "sourceScope": {
+                  "type": "string"
+                },
+                "ownerId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "title": "image",
+          "type": "object",
+          "json_schema": {
+            "type": "object",
+            "properties": {
+              "placement": {
+                "type": "string",
+                "enum": [
+                  "featured"
+                ]
+              },
+              "post": {
+                "type": "string"
+              },
+              "prompt": {
+                "type": "string"
+              },
+              "altText": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "placement",
+              "post",
+              "prompt",
+              "altText"
+            ]
+          }
+        },
+        {
+          "title": "notes",
+          "type": "string"
+        }
+      ],
+      "metadata": {
+        "cinatra": {
+          "riskClass": "read_only",
+          "requiresApproval": false,
+          "packageName": "@cinatra-ai/blog-image-generator-agent",
+          "description": "Single ApiNode bridge invocation that settles the featured image of the supplied draft post - its placement, the post it belongs to, the prompt it is made from and its alternative text. The picture bytes are made by the host image tool, which is not built yet. Empty toolbox list; strict JSON answer {image:{placement,post,prompt,altText}, notes}."
+        }
+      }
+    },
+    "end": {
+      "component_type": "EndNode",
+      "id": "end",
+      "name": "End",
+      "outputs": [
+        {
+          "title": "image",
+          "type": "object",
+          "json_schema": {
+            "type": "object",
+            "properties": {
+              "placement": {
+                "type": "string",
+                "enum": [
+                  "featured"
+                ]
+              },
+              "post": {
+                "type": "string"
+              },
+              "prompt": {
+                "type": "string"
+              },
+              "altText": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "placement",
+              "post",
+              "prompt",
+              "altText"
+            ]
+          },
+          "default": {}
+        },
+        {
+          "title": "notes",
+          "type": "string",
+          "default": ""
+        }
+      ]
+    },
+    "context-imagePromptContext-subflow": {
+      "agentspec_version": "26.1.0",
+      "component_type": "Flow",
+      "id": "context-imagePromptContext-subflow",
+      "name": "Context Agent (imagePromptContext)",
+      "inputs": [
+        {
+          "title": "parentRunId",
+          "type": "string"
+        },
+        {
+          "title": "parentPackageName",
+          "type": "string"
+        },
+        {
+          "title": "slotId",
+          "type": "string"
+        },
+        {
+          "title": "projectId",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "outputs": [
+        {
+          "title": "contextSlotBindings",
+          "type": "array",
+          "json_schema": {
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      ],
+      "start_node": {
+        "$component_ref": "ctx-imagePromptContext-start"
+      },
+      "nodes": [
+        {
+          "$component_ref": "ctx-imagePromptContext-start"
+        },
+        {
+          "$component_ref": "ctx-imagePromptContext-resolve_context"
+        },
+        {
+          "$component_ref": "ctx-imagePromptContext-select_mode"
+        },
+        {
+          "$component_ref": "ctx-imagePromptContext-emit_context_payload"
+        },
+        {
+          "$component_ref": "ctx-imagePromptContext-context_select_gate"
+        },
+        {
+          "$component_ref": "ctx-imagePromptContext-finalize_interactive"
+        },
+        {
+          "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+        },
+        {
+          "$component_ref": "ctx-imagePromptContext-end"
+        }
+      ],
+      "control_flow_connections": [
+        {
+          "component_type": "ControlFlowEdge",
+          "name": "ctx-imagePromptContext-start_to_resolve",
+          "from_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "to_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          }
+        },
+        {
+          "component_type": "ControlFlowEdge",
+          "name": "ctx-imagePromptContext-resolve_to_select",
+          "from_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "to_node": {
+            "$component_ref": "ctx-imagePromptContext-select_mode"
+          }
+        },
+        {
+          "component_type": "ControlFlowEdge",
+          "name": "ctx-imagePromptContext-select_default_to_emit",
+          "from_node": {
+            "$component_ref": "ctx-imagePromptContext-select_mode"
+          },
+          "to_node": {
+            "$component_ref": "ctx-imagePromptContext-emit_context_payload"
+          },
+          "from_branch": "default"
+        },
+        {
+          "component_type": "ControlFlowEdge",
+          "name": "ctx-imagePromptContext-emit_to_gate",
+          "from_node": {
+            "$component_ref": "ctx-imagePromptContext-emit_context_payload"
+          },
+          "to_node": {
+            "$component_ref": "ctx-imagePromptContext-context_select_gate"
+          }
+        },
+        {
+          "component_type": "ControlFlowEdge",
+          "name": "ctx-imagePromptContext-gate_to_finalize_interactive",
+          "from_node": {
+            "$component_ref": "ctx-imagePromptContext-context_select_gate"
+          },
+          "to_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_interactive"
+          }
+        },
+        {
+          "component_type": "ControlFlowEdge",
+          "name": "ctx-imagePromptContext-finalize_interactive_to_end",
+          "from_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_interactive"
+          },
+          "to_node": {
+            "$component_ref": "ctx-imagePromptContext-end"
+          }
+        },
+        {
+          "component_type": "ControlFlowEdge",
+          "name": "ctx-imagePromptContext-select_autonomous_to_finalize",
+          "from_node": {
+            "$component_ref": "ctx-imagePromptContext-select_mode"
+          },
+          "to_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+          },
+          "from_branch": "autonomous"
+        },
+        {
+          "component_type": "ControlFlowEdge",
+          "name": "ctx-imagePromptContext-finalize_autonomous_to_end",
+          "from_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+          },
+          "to_node": {
+            "$component_ref": "ctx-imagePromptContext-end"
+          }
+        }
+      ],
+      "data_flow_connections": [
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_parentRunId_to_resolve",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "parentRunId",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "destination_input": "parentRunId"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_parentPackageName_to_resolve",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "parentPackageName",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "destination_input": "parentPackageName"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_slotId_to_resolve",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "slotId",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "destination_input": "slotId"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_projectId_to_resolve",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "projectId",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "destination_input": "projectId"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-resolve_selectionMode_to_select",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "source_output": "selectionMode",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-select_mode"
+          },
+          "destination_input": "selectionMode"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-resolve_candidates_to_emit",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "source_output": "candidates",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-emit_context_payload"
+          },
+          "destination_input": "candidates"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-resolve_slotMeta_to_emit",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "source_output": "slotMeta",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-emit_context_payload"
+          },
+          "destination_input": "slotMeta"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-resolve_selectedRefs_to_emit",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "source_output": "selectedRefs",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-emit_context_payload"
+          },
+          "destination_input": "selectedRefs"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-gate_userResponse_to_finalize_interactive",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-context_select_gate"
+          },
+          "source_output": "userResponse",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_interactive"
+          },
+          "destination_input": "userResponse"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_parentRunId_to_finalize_interactive",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "parentRunId",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_interactive"
+          },
+          "destination_input": "parentRunId"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_parentPackageName_to_finalize_interactive",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "parentPackageName",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_interactive"
+          },
+          "destination_input": "parentPackageName"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_slotId_to_finalize_interactive",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "slotId",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_interactive"
+          },
+          "destination_input": "slotId"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_projectId_to_finalize_interactive",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "projectId",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_interactive"
+          },
+          "destination_input": "projectId"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-resolve_selectionMode_to_finalize_interactive",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "source_output": "selectionMode",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_interactive"
+          },
+          "destination_input": "selectionMode"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_parentRunId_to_finalize_autonomous",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "parentRunId",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+          },
+          "destination_input": "parentRunId"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_parentPackageName_to_finalize_autonomous",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "parentPackageName",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+          },
+          "destination_input": "parentPackageName"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_slotId_to_finalize_autonomous",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "slotId",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+          },
+          "destination_input": "slotId"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-start_projectId_to_finalize_autonomous",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-start"
+          },
+          "source_output": "projectId",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+          },
+          "destination_input": "projectId"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-resolve_selectionMode_to_finalize_autonomous",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "source_output": "selectionMode",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+          },
+          "destination_input": "selectionMode"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-resolve_resolutionMode_to_finalize_autonomous",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "source_output": "resolutionMode",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+          },
+          "destination_input": "resolutionMode"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-resolve_selectedRefs_to_finalize_autonomous",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-resolve_context"
+          },
+          "source_output": "selectedRefs",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+          },
+          "destination_input": "selectedRefs"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-finalize_interactive_to_end",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_interactive"
+          },
+          "source_output": "contextSlotBindings",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-end"
+          },
+          "destination_input": "contextSlotBindings"
+        },
+        {
+          "component_type": "DataFlowEdge",
+          "name": "ctx-imagePromptContext-finalize_autonomous_to_end",
+          "source_node": {
+            "$component_ref": "ctx-imagePromptContext-finalize_autonomous"
+          },
+          "source_output": "contextSlotBindings",
+          "destination_node": {
+            "$component_ref": "ctx-imagePromptContext-end"
+          },
+          "destination_input": "contextSlotBindings"
+        }
+      ],
+      "$referenced_components": {
+        "ctx-imagePromptContext-start": {
+          "component_type": "StartNode",
+          "id": "ctx-imagePromptContext-start",
+          "name": "Inputs",
+          "metadata": {
+            "cinatra": {
+              "required": [
+                "parentRunId",
+                "parentPackageName",
+                "slotId"
+              ],
+              "hidden": [
+                "parentRunId",
+                "parentPackageName",
+                "slotId",
+                "projectId"
+              ]
+            }
+          },
+          "inputs": [
+            {
+              "title": "parentRunId",
+              "type": "string"
+            },
+            {
+              "title": "parentPackageName",
+              "type": "string"
+            },
+            {
+              "title": "slotId",
+              "type": "string"
+            },
+            {
+              "title": "projectId",
+              "type": "string",
+              "default": ""
+            }
+          ]
+        },
+        "ctx-imagePromptContext-resolve_context": {
+          "component_type": "ApiNode",
+          "id": "ctx-imagePromptContext-resolve_context",
+          "name": "Resolve context candidates",
+          "url": "{{CINATRA_BASE_URL}}/api/context-resolve",
+          "http_method": "POST",
+          "data": {
+            "parentRunId": "{{ parentRunId }}",
+            "parentPackageName": "{{ parentPackageName }}",
+            "slotId": "{{ slotId }}",
+            "projectId": "{{ projectId }}"
+          },
+          "inputs": [
+            {
+              "title": "parentRunId",
+              "type": "string"
+            },
+            {
+              "title": "parentPackageName",
+              "type": "string"
+            },
+            {
+              "title": "slotId",
+              "type": "string"
+            },
+            {
+              "title": "projectId",
+              "type": "string",
+              "default": ""
+            }
+          ],
+          "outputs": [
+            {
+              "title": "candidates",
+              "type": "array",
+              "json_schema": {
+                "items": {
+                  "type": "object"
+                }
+              }
+            },
+            {
+              "title": "slotMeta",
+              "type": "object"
+            },
+            {
+              "title": "selectedRefs",
+              "type": "array",
+              "json_schema": {
+                "items": {
+                  "type": "object"
+                }
+              }
+            },
+            {
+              "title": "selectionMode",
+              "type": "string"
+            },
+            {
+              "title": "resolutionMode",
+              "type": "string"
+            }
+          ]
+        },
+        "ctx-imagePromptContext-select_mode": {
+          "component_type": "BranchingNode",
+          "id": "ctx-imagePromptContext-select_mode",
+          "name": "Branch on selection mode",
+          "metadata": {
+            "cinatra": {
+              "purpose": "route-autonomous-slots-around-the-HITL-gate"
+            }
+          },
+          "inputs": [
+            {
+              "title": "selectionMode",
+              "type": "string"
+            }
+          ],
+          "outputs": [],
+          "branches": [
+            "default",
+            "autonomous"
+          ],
+          "mapping": {
+            "autonomous": "autonomous"
+          }
+        },
+        "ctx-imagePromptContext-emit_context_payload": {
+          "component_type": "OutputMessageNode",
+          "id": "ctx-imagePromptContext-emit_context_payload",
+          "name": "Emit resolved context as agent message",
+          "inputs": [
+            {
+              "title": "candidates",
+              "type": "array",
+              "json_schema": {
+                "items": {
+                  "type": "object"
+                }
+              }
+            },
+            {
+              "title": "slotMeta",
+              "type": "object"
+            },
+            {
+              "title": "selectedRefs",
+              "type": "array",
+              "json_schema": {
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          ],
+          "message": "{# pyagentspec-input-hint (do not remove): {{ candidates }} {{ slotMeta }} {{ selectedRefs }} #}{\"candidates\":{{ candidates | tojson }},\"slotMeta\":{{ slotMeta | tojson }},\"selectedRefs\":{{ selectedRefs | tojson }}}"
+        },
+        "ctx-imagePromptContext-context_select_gate": {
+          "component_type": "InputMessageNode",
+          "id": "ctx-imagePromptContext-context_select_gate",
+          "name": "Select context",
+          "metadata": {
+            "cinatra": {
+              "riskClass": "read_only",
+              "requiresApproval": true,
+              "renderer": "@cinatra-ai/context-selection-agent:context-selector",
+              "a2uiSurfaceId": "context-selection:select"
+            }
+          },
+          "outputs": [
+            {
+              "title": "userResponse",
+              "type": "string"
+            }
+          ]
+        },
+        "ctx-imagePromptContext-finalize_interactive": {
+          "component_type": "ApiNode",
+          "id": "ctx-imagePromptContext-finalize_interactive",
+          "name": "Finalize selected context (interactive)",
+          "url": "{{CINATRA_BASE_URL}}/api/context-finalize",
+          "http_method": "POST",
+          "data": {
+            "parentRunId": "{{ parentRunId }}",
+            "parentPackageName": "{{ parentPackageName }}",
+            "slotId": "{{ slotId }}",
+            "projectId": "{{ projectId }}",
+            "selectionMode": "{{ selectionMode }}",
+            "userResponse": "{{ userResponse }}"
+          },
+          "inputs": [
+            {
+              "title": "parentRunId",
+              "type": "string"
+            },
+            {
+              "title": "parentPackageName",
+              "type": "string"
+            },
+            {
+              "title": "slotId",
+              "type": "string"
+            },
+            {
+              "title": "projectId",
+              "type": "string",
+              "default": ""
+            },
+            {
+              "title": "selectionMode",
+              "type": "string"
+            },
+            {
+              "title": "userResponse",
+              "type": "string"
+            }
+          ],
+          "outputs": [
+            {
+              "title": "contextSlotBindings",
+              "type": "array",
+              "json_schema": {
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          ]
+        },
+        "ctx-imagePromptContext-finalize_autonomous": {
+          "component_type": "ApiNode",
+          "id": "ctx-imagePromptContext-finalize_autonomous",
+          "name": "Finalize selected context (autonomous)",
+          "url": "{{CINATRA_BASE_URL}}/api/context-finalize",
+          "http_method": "POST",
+          "data": {
+            "parentRunId": "{{ parentRunId }}",
+            "parentPackageName": "{{ parentPackageName }}",
+            "slotId": "{{ slotId }}",
+            "projectId": "{{ projectId }}",
+            "selectionMode": "{{ selectionMode }}",
+            "userResponse": "{# pyagentspec-input-hint (do not remove): {{ slotId }} {{ resolutionMode }} {{ selectedRefs }} #}{\"slotId\":{{ slotId | tojson }},\"resolutionMode\":{{ resolutionMode | tojson }},\"selectedRefs\":{{ selectedRefs | tojson }}}"
+          },
+          "inputs": [
+            {
+              "title": "parentRunId",
+              "type": "string"
+            },
+            {
+              "title": "parentPackageName",
+              "type": "string"
+            },
+            {
+              "title": "slotId",
+              "type": "string"
+            },
+            {
+              "title": "projectId",
+              "type": "string",
+              "default": ""
+            },
+            {
+              "title": "selectionMode",
+              "type": "string"
+            },
+            {
+              "title": "resolutionMode",
+              "type": "string"
+            },
+            {
+              "title": "selectedRefs",
+              "type": "array",
+              "json_schema": {
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "title": "contextSlotBindings",
+              "type": "array",
+              "json_schema": {
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          ]
+        },
+        "ctx-imagePromptContext-end": {
+          "component_type": "EndNode",
+          "id": "ctx-imagePromptContext-end",
+          "name": "Outputs",
+          "outputs": [
+            {
+              "title": "contextSlotBindings",
+              "type": "array",
+              "json_schema": {
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          ],
+          "inputs": [
+            {
+              "title": "contextSlotBindings",
+              "type": "array",
+              "json_schema": {
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "context_imagePromptContext": {
+      "component_type": "FlowNode",
+      "id": "context_imagePromptContext",
+      "name": "Resolve imagePromptContext",
+      "subflow": {
+        "$component_ref": "context-imagePromptContext-subflow"
+      },
+      "metadata": {
+        "cinatra": {
+          "purpose": "author-placed-context-resolution-for-imagePromptContext"
+        }
+      }
+    }
+  }
+}

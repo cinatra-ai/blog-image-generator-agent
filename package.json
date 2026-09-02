@@ -1,0 +1,63 @@
+{
+  "name": "@cinatra-ai/blog-image-generator-agent",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "Stateless leaf agent that settles the featured image of a blog post. It reads the draft post and returns exactly ONE image record - the placement (always featured), the post the picture belongs to, the prompt the picture is made from, and alternative text - never a list. No body pictures and no picture count: one post, one picture. The picture bytes are made by the host image tool, which is not built yet; until it lands the run yields the record and no picture. Single bridge invocation; the bridge node declares an empty toolbox list (data.toolbox_ids: []), so the host attaches no toolbox to the turn and the answer follows the node own JSON contract. Returns strict JSON {image:{placement,post,prompt,altText}, notes}.",
+  "type": "module",
+  "files": [
+    "cinatra"
+  ],
+  "cinatra": {
+    "apiVersion": "cinatra.ai/v1",
+    "kind": "agent",
+    "displayName": "Blog Image Generator Agent",
+    "dependencies": [
+      {
+        "packageName": "@cinatra-ai/blog-image-artifact",
+        "edgeType": "runtime",
+        "versionConstraint": {
+          "kind": "semver-range",
+          "range": "^0.1.0"
+        },
+        "requirement": "required",
+        "kind": "artifact"
+      },
+      {
+        "packageName": "@cinatra-ai/blog-post-artifact",
+        "edgeType": "runtime",
+        "versionConstraint": {
+          "kind": "semver-range",
+          "range": "^0.1.0"
+        },
+        "requirement": "required",
+        "kind": "artifact"
+      },
+      {
+        "packageName": "@cinatra-ai/context-selection-agent",
+        "edgeType": "runtime",
+        "versionConstraint": {
+          "kind": "semver-range",
+          "range": "^0.1.0"
+        },
+        "requirement": "required",
+        "kind": "agent"
+      }
+    ],
+    "consumes": [],
+    "packageType": "agent",
+    "manifestVersion": 1,
+    "sourceTemplateId": "blog-image-generator-agent-flow",
+    "sourceVersionId": "ac911a3b-ee55-47bf-80f9-4ec539a4cbee",
+    "sourceVersionNumber": 1,
+    "riskLevel": "low",
+    "hasApprovalGates": true,
+    "toolAccess": [],
+    "ownerOrgId": null,
+    "agentDependencies": {
+      "@cinatra-ai/context-selection-agent": "^0.1.1"
+    }
+  },
+  "scripts": {
+    "test": "sh -c \"node --test\""
+  }
+}
