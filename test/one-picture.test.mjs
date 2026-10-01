@@ -45,11 +45,8 @@ test("the package is the image agent, not the prompt-list writer", () => {
   );
 });
 
-test("it declares an edge to the picture it makes and to the post it reads", () => {
-  assert.deepEqual(artifactEdges, [
-    "@cinatra-ai/blog-image-artifact",
-    "@cinatra-ai/blog-post-artifact",
-  ]);
+test("it declares an edge to the post it reads, and none to a picture type", () => {
+  assert.deepEqual(artifactEdges, ["@cinatra-ai/blog-post-artifact"]);
 });
 
 test("it takes the post, and nothing that asks for more than one picture", () => {
@@ -138,18 +135,20 @@ test("the instructions ask for one picture and forbid a body picture", () => {
   assert.match(system, /body/i);
 });
 
-test("the picture is an edge today; its typed produces entry waits for the write road", () => {
-  // The fleet's blocking adoption gate refuses a produces entry no
-  // materialization road reaches, and the three roads it recognises - an
-  // EndNode output binding, an artifact_materialize passthrough node, an
-  // artifact_authoring_emit claim - are each scoped to text-authorable MIMEs.
-  // Picture bytes ARE filed elsewhere - a first-party road of the host's own
-  // writes them as rows of this very picture type - but that road is server-side
-  // and reachable from no agent run: the three write seams an agent may invoke
-  // are the ones above, and each refuses an image MIME. So no road THIS package
-  // can take reaches a picture, the entry waits for one, and the EDGE stays: it
-  // says what the run touches, which is true either way.
-  assert.ok(artifactEdges.includes("@cinatra-ai/blog-image-artifact"));
+test("it declares no edge and no production for the picture: the pipeline that embeds it files the picture", () => {
+  // This agent files nothing: no end node binding, no materialize node, no
+  // authoring claim - and each of those roads is scoped to text-authorable
+  // types anyway. The blog pipeline that embeds this agent files the picture
+  // as an image artifact through the host's image tool, so this package
+  // declares neither a production nor an edge onto a picture type.
+  assert.ok(
+    !artifactEdges.includes("@cinatra-ai/blog-image-artifact"),
+    "no edge onto the retired blog image extension",
+  );
+  assert.ok(
+    !artifactEdges.includes("@cinatra-ai/image-artifact"),
+    "no edge onto the image extension: the pipeline files the picture",
+  );
   assert.deepEqual(pkg.cinatra.produces ?? [], []);
 });
 
@@ -175,7 +174,7 @@ test("the binding that would file the picture is refused by the grammar itself",
       `${mime} is not text-authorable`,
     );
     const issues = gate.validateArtifactBindingShape({
-      extension: "@cinatra-ai/blog-image-artifact",
+      extension: "@cinatra-ai/image-artifact",
       contentFrom: "image",
       titleFrom: "notes",
       declaredMime: mime,
@@ -196,7 +195,7 @@ test("the binding that would file the picture is refused by the grammar itself",
   // and the only honest declaration is none.
   assert.deepEqual(
     gate.validateArtifactBindingShape({
-      extension: "@cinatra-ai/blog-image-artifact",
+      extension: "@cinatra-ai/image-artifact",
       contentFrom: "image",
       titleFrom: "notes",
       mimeFrom: "pictureMime",
@@ -277,30 +276,27 @@ test("the record names its post, and says so when it was given none", () => {
 });
 
 // ---------------------------------------------------------------------------
-// The picture's own type, and the data that type asks for.
+// The type the picture is filed as, and the data the record keeps for it.
 //
-// `@cinatra-ai/blog-image-artifact:blog-image` is not an umbrella: the picture
-// pack declares that exact type with a schema of its own, and the schema asks
-// for two fields - `post` and `placement`, both REQUIRED, the placement
-// admitting the featured value alone. That is the pair this record has always
-// carried, so what a byte road is missing here is the ROAD and never the
-// payload. The package names the type where a reader meets it, so nobody has to
-// open a sibling package to learn which picture waits on which road.
+// The blog pipeline that embeds this agent files the picture as an image
+// artifact of the type the constant below names. The image type admits the
+// record's post and placement as data of its own, and the record's schemas keep
+// both fields required, the placement admitting the featured value alone.
 // ---------------------------------------------------------------------------
-const BLOG_IMAGE_TYPE = "@cinatra-ai/blog-image-artifact:blog-image";
+const IMAGE_TYPE = "@cinatra-ai/image-artifact:image";
 
-test("the record is already the data the picture type asks for", () => {
+test("the record carries the post and placement the picture's data keeps", () => {
   for (const schema of imageSchemas) {
     for (const field of ["post", "placement"]) {
-      assert.ok(schema.required.includes(field), `the picture type requires ${field}`);
+      assert.ok(schema.required.includes(field), `the record requires ${field}`);
       assert.equal(schema.properties[field].type, "string");
     }
     assert.deepEqual(schema.properties.placement.enum, ["featured"]);
   }
   // Naming the type is what turns "a picture" into a checkable claim: it is the
   // id a day-one road resolves, and the id whose schema those two fields answer.
-  assert.ok(pkg.description.includes(BLOG_IMAGE_TYPE), "the manifest names the type");
-  assert.ok(readme.includes(BLOG_IMAGE_TYPE), "and the readme names it too");
+  assert.ok(pkg.description.includes(IMAGE_TYPE), "the manifest names the image type");
+  assert.ok(readme.includes(IMAGE_TYPE), "and the readme names it too");
 });
 
 // This one is a RECORD, not a fix: it is green on the previous head as well. It
@@ -318,7 +314,7 @@ test("the gate itself bounds the maximum: no typed production without a road", a
     cinatra: {
       ...pkg.cinatra,
       produces: [
-        { extension: "@cinatra-ai/blog-image-artifact", objectTypeId: BLOG_IMAGE_TYPE },
+        { extension: "@cinatra-ai/image-artifact", objectTypeId: IMAGE_TYPE },
       ],
     },
   };
@@ -327,4 +323,19 @@ test("the gate itself bounds the maximum: no typed production without a road", a
     findings.some((f) => /no runnable materialization/.test(f)),
     `declaring the production alone is refused (got: ${findings.join("; ") || "no finding"})`,
   );
+});
+
+// The application's issue 3033 files the featured image as an image artifact
+// whose data names its post and its placement. This arm pins only that the
+// shipped manifest, flow and readme name the retired blog image extension, or
+// its type, nowhere.
+test("the manifest, the flow and the readme name the retired blog image extension nowhere", () => {
+  for (const file of ["package.json", join("cinatra", "oas.json"), "README.md"]) {
+    const text = readFileSync(join(ROOT, file), "utf8");
+    assert.doesNotMatch(
+      text,
+      /blog-image-artifact|blog-image (type|artifact)/i,
+      `${file} names the blog image extension`,
+    );
+  }
 });

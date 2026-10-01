@@ -2,7 +2,7 @@
 
 Settle the featured image of a blog post. Give the agent the draft post and it returns one image record for the top of that post: the placement, the post the picture belongs to, the prompt the picture is made from, and alternative text. One post, one picture: there is no picture count, and nothing is settled for the body of the post.
 
-The picture bytes are not filed with the record: every write road an agent can take is scoped in v1 to the text-authorable types, and `@cinatra-ai/blog-image-artifact:blog-image` accepts only image ones. The two sets do not meet, so no road reaches a picture: a run yields the record alone. The record already carries the post and the placement that type asks for, so a byte road is handed a record it accepts the day one opens.
+The picture bytes are not filed by this agent: every write road its own flow could declare is scoped in v1 to the text-authorable types, and a picture is none of them. The blog pipeline that embeds it files the picture as an image artifact, `@cinatra-ai/image-artifact:image`, with the record's post and placement on its data.
 
 Install from the Cinatra marketplace. The only field a person fills in is `post` - the draft post as plain text, before its review. Everything else is the runtime's own plumbing and stays hidden: the placement (always `featured`), the post the picture belongs to, the run, the context slot and the project. No external credentials are needed; the agent uses the platform LLM bridge.
 
@@ -17,7 +17,7 @@ For local development, run `node extension-kind-gate.mjs --package-root .` and `
 ## Works with
 
 - Cinatra blog-post artifacts
-- Cinatra blog-image artifacts
+- Cinatra image artifacts
 - Cinatra brand-voice artifacts
 
 ## Capabilities

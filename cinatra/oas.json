@@ -447,7 +447,7 @@
           "riskClass": "read_only",
           "requiresApproval": false,
           "packageName": "@cinatra-ai/blog-image-generator-agent",
-          "description": "Single ApiNode bridge invocation that settles the featured image of the supplied draft post - its placement, the post it belongs to, the prompt it is made from and its alternative text. The picture bytes are not filed with the record: every write road an agent can take is scoped in v1 to the text-authorable types, and the blog-image type accepts only image MIME types. Empty toolbox list; strict JSON answer {image:{placement,post,prompt,altText}, notes}."
+          "description": "Single ApiNode bridge invocation that settles the featured image of the supplied draft post - its placement, the post it belongs to, the prompt it is made from and its alternative text. The picture bytes are not filed by this agent: the blog pipeline that embeds it files the picture as an image artifact, with the record's post and placement on its data. Empty toolbox list; strict JSON answer {image:{placement,post,prompt,altText}, notes}."
         }
       }
     },
