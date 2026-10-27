@@ -45,8 +45,10 @@ test("the package is the image agent, not the prompt-list writer", () => {
   );
 });
 
-test("it declares an edge to the post it reads, and none to a picture type", () => {
-  assert.deepEqual(artifactEdges, ["@cinatra-ai/blog-post-artifact"]);
+test("it declares an edge to the post it reads and the brand voice it reads, and none to a picture type", () => {
+  // The brand voice's text is read through the host's content read, which admits
+  // only the artifact types this package declares (cinatra-ai/cinatra#4314).
+  assert.deepEqual(artifactEdges, ["@cinatra-ai/blog-post-artifact", "@cinatra-ai/brand-voice-artifact"]);
 });
 
 test("it takes the post, and nothing that asks for more than one picture", () => {
