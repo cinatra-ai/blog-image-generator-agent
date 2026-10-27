@@ -8,7 +8,7 @@ Install from the Cinatra marketplace. The only field a person fills in is `post`
 
 The agent returns `{ image, notes }`. The `image` object carries `{ placement, post, prompt, altText }`, all four required - one object, never a list. The `notes` field is one or two sentences on the choice that was made.
 
-Two context slots let you attach material before the image is settled: `brandVoice` takes ONE stored brand-voice artifact (the blog pipeline fills it with the pick it asks for once), and `imagePromptContext` takes blog-post artifacts. In interactive runs the platform shows a context-selection UI; in autonomous mode the slot resolves from previously attached artifacts. Each slot hands the agent references to that material, not its contents.
+Two context slots let you attach material before the image is settled: `brandVoice` takes ONE stored brand-voice artifact (the blog pipeline fills it with the pick it asks for once), and `imagePromptContext` takes blog-post artifacts. In interactive runs the platform shows a context-selection UI; in autonomous mode the slot resolves from previously attached artifacts. The agent reads the brand voice's text; a PDF stops the run.
 
 This package replaces `@cinatra-ai/blog-image-prompt-agent`, which wrote lists of image prompts. That package is retired, and nothing feeds this one a prompt: the agent writes its own.
 
