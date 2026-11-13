@@ -229,17 +229,20 @@ test("the prompt is this agent's own - no prompt agent feeds it", () => {
     !JSON.stringify(oas).includes("blog-image-prompt-agent"),
     "and the flow names it nowhere",
   );
-  // Nothing hands the bridge node a prompt: the prompt is an OUTPUT this agent
-  // writes from the post and the brand material, so there is no second agent to
-  // wire in and no output shape to agree on.
+  // No second agent hands the bridge node a prompt: the prompt is an OUTPUT this
+  // agent writes from the post and the brand material, so there is no output
+  // shape to agree on. The one prompt it can be given is the caller's own words,
+  // the optional hidden `prompt` input (cinatra-ai/cinatra#4264, pinned in
+  // prompt-input.test.mjs): empty by default, never required.
   const bridgeInputs = refs.generate.inputs.map((i) => i.title);
   // Name the ports that MUST be there first, so an empty input list can never
   // let the refusal below pass by having nothing to refuse.
   for (const required of ["post", "postArtifactId"]) {
     assert.ok(bridgeInputs.includes(required), `the bridge node takes ${required}`);
   }
-  for (const title of bridgeInputs) {
-    assert.ok(!/^prompt$/i.test(title), `the bridge node takes no prompt (${title})`);
+  for (const input of refs.generate.inputs) {
+    if (!/^prompt$/i.test(input.title)) continue;
+    assert.equal(input.default, "", "the bridge node's only prompt is the optional, empty-by-default input");
   }
   for (const schema of imageSchemas) {
     assert.ok("prompt" in schema.properties, "the record carries the prompt it wrote");
