@@ -6,11 +6,11 @@ The picture bytes are not filed by this agent: every write road its own flow cou
 
 Install from the Cinatra marketplace. The only field a person fills in is `post` - the draft post as plain text, before its review. Everything else is the runtime's own plumbing and stays hidden: the placement (always `featured`), the post the picture belongs to, the run, the context slot and the project. No external credentials are needed; the agent uses the platform LLM bridge.
 
-The agent returns `{ image, notes }`. The `image` object carries `{ placement, post, prompt, altText }`, all four required - one object, never a list. The `notes` field is one or two sentences on the choice that was made.
+The agent returns `{ image, notes }`. The `image` object carries `{ placement, post, prompt, altText }`, all four required - one object, never a list. `notes` is one or two sentences on the choice.
 
 Two context slots let you attach material before the image is settled: `brandVoice` takes ONE stored brand-voice artifact (the blog pipeline fills it with the pick it asks for once), and `imagePromptContext` takes blog-post artifacts. In interactive runs the platform shows a context-selection UI; in autonomous mode the slot resolves from previously attached artifacts. The agent reads the brand voice's text; a PDF stops the run.
 
-This package replaces `@cinatra-ai/blog-image-prompt-agent`, which wrote lists of image prompts. That package is retired, and nothing feeds this one a prompt: the agent writes its own.
+This package replaces `@cinatra-ai/blog-image-prompt-agent`, which wrote lists of image prompts. That package is retired. The agent writes its own prompt, unless a caller hands one in the optional, hidden `prompt` input.
 
 For local development, run `node extension-kind-gate.mjs --package-root .` and `npm test`; no build step.
 
