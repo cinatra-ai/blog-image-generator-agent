@@ -1,6 +1,6 @@
 {
   "name": "@cinatra-ai/blog-image-generator-agent",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "Apache-2.0",
   "description": "Stateless leaf agent that settles the featured image of a blog post. It reads the draft post and returns exactly ONE image record - the placement (always featured), the post the picture belongs to, the prompt the picture is made from, and alternative text - never a list. No body pictures and no picture count: one post, one picture. It writes its own prompt unless a caller hands it one in the optional, hidden `prompt` input (empty by default; when it carries words they are the record's prompt): it replaces the retired prompt-list agent, so no second agent feeds this one. The picture BYTES are not filed by this agent, and not for want of a declaration here: every write road its own flow could declare - a declarative EndNode artifact binding, the artifact_materialize passthrough, an artifact_authoring_emit claim - is scoped in v1 to the text-authorable types (text/markdown, text/plain, text/html, application/json, application/xml), and a picture is none of them. The blog pipeline that embeds this agent files the picture as an image artifact of the type @cinatra-ai/image-artifact:image, carrying the record's post and placement on the picture's data. Single bridge invocation; the bridge node declares an empty toolbox list (data.toolbox_ids: []), so the host attaches no toolbox to the turn and the answer follows the node own JSON contract. Returns strict JSON {image:{placement,post,prompt,altText}, notes}.",
   "type": "module",
@@ -55,7 +55,8 @@
     "tools": [
       {
         "name": "brand_voice_text",
-        "module": "./cinatra/tools/brand-voice-text.mjs"
+        "module": "./cinatra/tools/brand-voice-text.mjs",
+        "embeddable": true
       }
     ],
     "ownerOrgId": null,
